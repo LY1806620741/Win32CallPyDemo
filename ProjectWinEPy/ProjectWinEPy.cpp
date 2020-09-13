@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "ProjectWinEPy.h"
+#include "python.h"
 
 #define MAX_LOADSTRING 100
 
