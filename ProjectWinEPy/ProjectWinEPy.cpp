@@ -3,7 +3,6 @@
 
 #include "stdafx.h"
 #include "ProjectWinEPy.h"
-#include "python.h"
 
 #define MAX_LOADSTRING 100
 
@@ -108,7 +107,22 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
-
+   Py_SetPythonHome(L"C:\\Users\\tanran\\AppData\\Local\\Programs\\Python\\Python38-32");
+   int t;
+   bool res;
+   if (!Py_IsInitialized()) {
+	   Py_Initialize();
+   }
+    const wchar_t** argv;
+	argv = (const wchar_t**)malloc(sizeof(wchar_t *) * (1));
+	argv[0]=L"C:\\Go\\test.py";
+	t=Py_Main(1, (wchar_t **)argv);
+	const char * version=Py_GetVersion();
+	wchar_t content[100];
+	swprintf_s(content, L"test \npythonversion:%s", char2wchar(version));
+	MessageBox(hWnd, content,L"test",NULL);
+	Py_Finalize();
+	free((void *)argv);
    return TRUE;
 }
 
