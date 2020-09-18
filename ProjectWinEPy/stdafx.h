@@ -19,3 +19,5 @@
 
 
 // 在此处引用程序需要的其他标头
+#include "config.h"
+#include "python.h"

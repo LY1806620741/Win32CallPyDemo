@@ -16,6 +16,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK PythonInfo(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -53,7 +54,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
 
     return (int) msg.wParam;
-}
+} 
 
 
 
@@ -107,22 +108,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
-   Py_SetPythonHome(L"C:\\Users\\tanran\\AppData\\Local\\Programs\\Python\\Python38-32");
-   int t;
-   bool res;
+   Py_SetPythonHome(PYTHONPATH);
+   //初始化python
    if (!Py_IsInitialized()) {
 	   Py_Initialize();
    }
-    const wchar_t** argv;
-	argv = (const wchar_t**)malloc(sizeof(wchar_t *) * (1));
-	argv[0]=L"C:\\Go\\test.py";
-	t=Py_Main(1, (wchar_t **)argv);
-	const char * version=Py_GetVersion();
-	wchar_t content[100];
-	swprintf_s(content, L"test \npythonversion:%s", char2wchar(version));
-	MessageBox(hWnd, content,L"test",NULL);
-	Py_Finalize();
-	free((void *)argv);
    return TRUE;
 }
 
@@ -149,7 +139,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_ABOUT:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;
+			case ID_PYTHONINFO:
+				DialogBox(hInst, MAKEINTRESOURCE(IDD_PYTHONINFO), hWnd, PythonInfo);
+				break;
+			case ID_EXECPY_SUC:
+				MessageBoxPrintf(hWnd, L"成功",L"%d",ExecPy(L"ExecSuc.py"));
+				break;
+			case ID_EXECPY_ERR:
+				MessageBoxPrintf(hWnd, L"失败", L"%d",ExecPy(L"ExecErr.py"));
+				break;
+			case ID_EXECPY_NF:
+				MessageBoxPrintf(hWnd, L"未找到脚本", L"%d",ExecPy(L"ExecNf.py"));
+				break;
             case IDM_EXIT:
+				Py_Finalize();//窗口退出前断开python
                 DestroyWindow(hWnd);
                 break;
             default:
@@ -193,3 +196,27 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     }
     return (INT_PTR)FALSE;
 }
+
+//  DialogProc
+INT_PTR CALLBACK PythonInfo(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	UNREFERENCED_PARAMETER(lParam);
+	switch (message)
+	{
+	case WM_INITDIALOG://初始化对话框
+		SetDlgItemText(hDlg, IDC_VERSION, char2wchar(Py_GetVersion()));
+		SetDlgItemText(hDlg, IDC_PYPATH, PYTHONPATH);
+		SetDlgItemText(hDlg, IDC_EXEPATH, Py_GetProgramFullPath());
+		return (INT_PTR)TRUE;
+
+	case WM_COMMAND:
+		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+		{
+			EndDialog(hDlg, LOWORD(wParam));
+			return (INT_PTR)TRUE;
+		}
+		break;
+	}
+	return (INT_PTR)FALSE;
+}
+
